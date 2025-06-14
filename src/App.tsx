@@ -5,9 +5,11 @@ import { Services } from './components/Services';
 import { BookingSystem } from './components/BookingSystem';
 import { Dashboard } from './components/Dashboard';
 import { DoctorDashboard } from './components/DoctorDashboard';
+import { BrowserRouter as Router , Routes , Route } from 'react-router-dom';
 import { LoginPage } from './components/Auth/LoginPage';
 import { SignupPage } from './components/Auth/SignupPage';
 import { User } from './types';
+import ChatBot from './components/ChatBot';
 
 function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -106,58 +108,59 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <Header 
-        currentView={currentView}
-        onViewChange={handleViewChange}
-        user={user}
-        onLogin={() => setAuthView('login')}
-        onLogout={handleLogout}
-      />
-      
-      {currentView === 'home' && (
-        <>
-          <Hero onGetStarted={handleGetStarted} />
-          <Services onBookService={handleBookService} />
-        </>
-      )}
-      
-      {currentView === 'services' && (
-        <div className="pt-8">
-          <Services onBookService={handleBookService} />
-        </div>
-      )}
-      
-      {currentView === 'booking' && (
-        <BookingSystem 
-          serviceType={selectedService}
-          onBack={() => handleViewChange('services')}
-        />
-      )}
-      
-      {currentView === 'dashboard' && user && (
-        user.role === 'doctor' ? (
-          <DoctorDashboard />
-        ) : (
-          <Dashboard />
-        )
-      )}
-      
-      {currentView === 'dashboard' && !user && (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h2>
-            <p className="text-gray-600 mb-8">You need to be signed in to access your dashboard</p>
-            <button
-              onClick={() => setAuthView('login')}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Sign In
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+    <>
+        <Router>
+           <Header 
+             currentView={currentView} 
+             onViewChange={handleViewChange} 
+             user={user} 
+             onLogin={() => setAuthView('login')}
+             onLogout={handleLogout} 
+           />
+           <Routes>
+             <Route path="/" element={<Hero onGetStarted={handleGetStarted} />} />
+             <Route path="/services" element={<Services onBookService={handleBookService} />} />
+             <Route path="/booking" element={
+               <BookingSystem 
+                 serviceType={selectedService} 
+                 onBack={() => handleViewChange('services')} 
+               />
+             } />
+             <Route path="/dashboard" element={
+               user ? (user.role === 'doctor' ? <DoctorDashboard /> : <Dashboard />) : (
+                 <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                   <div className="text-center">
+                     <h2 className="text-2xl font-bold text-gray-900 mb-4">Please Sign In</h2>
+                     <p className="text-gray-600 mb-8">You need to be signed in to access your dashboard</p>
+                     <button
+                       onClick={() => setAuthView('login')}
+                       className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                     >
+                       Sign In
+                     </button>
+                   </div>
+                 </div>
+               )
+             } />
+             <Route path="/login" element={
+               <LoginPage
+                 onLogin={handleLogin}
+                 onSwitchToSignup={() => setAuthView('signup')}
+                 onBack={handleBackToHome}
+               />
+             } />
+             <Route path="/signup" element={
+               <SignupPage
+                 onSignup={handleSignup}
+                 onSwitchToLogin={() => setAuthView('login')}
+                 onBack={handleBackToHome}
+               />
+             } />
+             <Route path="/chatbot" element = {<ChatBot />} />
+           </Routes>  
+        </Router>
+    </>
+  
   );
 }
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function Chatbot() {
+function ChatBot() {
   const [messages, setMessages] = useState<{ sender: string; text: string }[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [input, setInput] = useState('');
@@ -234,4 +234,4 @@ const speakText = async (text: string) => {
   );
 }
 
-export default Chatbot;
+export default ChatBot;
