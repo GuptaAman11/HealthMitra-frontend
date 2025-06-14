@@ -1,3 +1,4 @@
+import { Languages } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 
@@ -13,15 +14,17 @@ interface SignupPayload {
   licenseNumber?: string;
   experience?: string;
   bio?: string;
+  age?: string;
   dateOfBirth?: string;
-  emergencyContact?: string;
 }
 const base_url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:1234';
 
 export const useSignupApi = () => {
   const [loading, setLoading] = useState(false);
 
-  const signup = async (data: SignupPayload) => {
+  const signup = async (data: SignupPayload , gender: string , language:string[]) => {
+    console.log(data , gender , language);
+    // return;
     setLoading(true);
 
     try {
@@ -38,10 +41,11 @@ export const useSignupApi = () => {
               licenseNumber: data.licenseNumber,
               experience: data.experience,
               bio: data.bio,
+              language: language,
             }
           : {
-              dateOfBirth: data.dateOfBirth,
-              emergencyContact: data.emergencyContact,
+              age: data.age,
+              gender:gender,
             }),
       };
 

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Heart, Eye, EyeOff, User, Stethoscope } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSignupApi } from '../../hooks/authHook';
+import SPECIALIZATIONS from '../../data/specialization';
+import LANGUAGES from '../../data/language';
 
 interface SignupPageProps {
   onSignup: (userData: any) => void;
@@ -25,19 +27,17 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
     experience: '',
     bio: '',
     // Patient specific fields
-    dateOfBirth: '',
-    emergencyContact: ''
+    age: '',
   });
   const navigate = useNavigate();
   const [gender, setGender] = useState('');
-  const [language, setLanguage] = useState([]);
-
+  const [language, setLanguage] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
@@ -76,13 +76,12 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
     if (!validateForm()) return;
   
     try {
-      await signup(formData); // Call the custom hook
+      await signup(formData, gender, language); // Call the custom hook
       navigate('/login');
     } catch (err) {
       // Error already handled in hook via toast
     }
   };
-  
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -208,50 +207,6 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
               />
               {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
             </div>
-            {/* Gender Selection */}
-<div className="mt-4">
-  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
-    Gender *
-  </label>
-  <select
-    id="gender"
-    name="gender"
-    required
-    value={gender}
-    onChange={(e) => setGender(e.target.value)}
-    className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-      errors.gender ? 'border-red-300' : 'border-gray-300'
-    }`}
-  >
-    <option value="">Select your gender</option>
-    <option value="male">Male</option>
-    <option value="female">Female</option>
-    <option value="other">Other</option>
-  </select>
-  {errors.gender && <p className="mt-1 text-sm text-red-600">{errors.gender}</p>}
-</div>
-
-{/* Language Selection */}
-{/* <div className="mt-4">
-  <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
-    Preferred Language *
-  </label>
-  <select
-    id="language"
-    name="language"
-    required
-    value={language}
-    onChange={(e) => setLanguage(e.target.value)}
-    className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-      errors.language ? 'border-red-300' : 'border-gray-300'
-    }`}
-  >
-    <option value="">Select your language</option>
-    <option value="english">English</option>
-    <option value="hindi">Hindi</option>
-  </select>
-  {errors.language && <p className="mt-1 text-sm text-red-600">{errors.language}</p>}
-</div> */}
 
             {/* Password Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -330,39 +285,75 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
                     <label htmlFor="specialization" className="block text-sm font-medium text-gray-700 mb-2">
                       Specialization *
                     </label>
-                    <input
+                    <select
                       id="specialization"
                       name="specialization"
-                      type="text"
                       required
                       value={formData.specialization}
                       onChange={handleInputChange}
                       className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
                         errors.specialization ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      placeholder="e.g., Clinical Psychology, Psychiatry"
-                    />
-                    {errors.specialization && <p className="mt-1 text-sm text-red-600">{errors.specialization}</p>}
+                    >
+                      <option value="">Select specialization</option>
+                      {SPECIALIZATIONS.map((spec: string) => (
+                        <option key={spec} value={spec}>
+                          {spec}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.specialization && (
+                      <p className="mt-1 text-sm text-red-600">{errors.specialization}</p>
+                    )}
                   </div>
 
                   <div>
-                    <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                      License Number *
+                    <label htmlFor="languages" className="block text-sm font-medium text-gray-700 mb-2">
+                      Languages Spoken *
                     </label>
-                    <input
-                      id="licenseNumber"
-                      name="licenseNumber"
-                      type="text"
+                    <select
+                      id="languages"
+                      name="languages"
+                      multiple
                       required
-                      value={formData.licenseNumber}
-                      onChange={handleInputChange}
+                      value={language}
+                      onChange={(e) => {
+                        const selected = Array.from(e.target.selectedOptions, (option) => option.value);
+                        setLanguage(selected);
+                      }}
                       className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-                        errors.licenseNumber ? 'border-red-300' : 'border-gray-300'
+                        errors.languages ? 'border-red-300' : 'border-gray-300'
                       }`}
-                      placeholder="Enter your license number"
-                    />
-                    {errors.licenseNumber && <p className="mt-1 text-sm text-red-600">{errors.licenseNumber}</p>}
+                    >
+                      {LANGUAGES.map((lang) => (
+                        <option key={lang} value={lang}>
+                          {lang}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.languages && (
+                      <p className="mt-1 text-sm text-red-600">{errors.languages}</p>
+                    )}
                   </div>
+                </div>
+
+                <div>
+                  <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                    License Number *
+                  </label>
+                  <input
+                    id="licenseNumber"
+                    name="licenseNumber"
+                    type="text"
+                    required
+                    value={formData.licenseNumber}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                      errors.licenseNumber ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your license number"
+                  />
+                  {errors.licenseNumber && <p className="mt-1 text-sm text-red-600">{errors.licenseNumber}</p>}
                 </div>
 
                 <div>
@@ -406,40 +397,49 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
             )}
 
             {formData.role === 'patient' && (
-              <div className="space-y-6 border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-medium text-gray-900">Additional Information</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700 mb-2">
-                      Date of Birth
-                    </label>
-                    <input
-                      id="dateOfBirth"
-                      name="dateOfBirth"
-                      type="date"
-                      value={formData.dateOfBirth}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="emergencyContact" className="block text-sm font-medium text-gray-700 mb-2">
-                      Emergency Contact
-                    </label>
-                    <input
-                      id="emergencyContact"
-                      name="emergencyContact"
-                      type="tel"
-                      value={formData.emergencyContact}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors"
-                      placeholder="Emergency contact number"
-                    />
-                  </div>
+              <>
+                {/* Age Section */}
+                <div>
+                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-2">
+                    Age *
+                  </label>
+                  <input
+                    id="age"
+                    name="age"
+                    type="number"
+                    required
+                    value={formData.age}
+                    onChange={handleInputChange}
+                    className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                      errors.age ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your age"
+                  />
+                  {errors.age && <p className="mt-1 text-sm text-red-600">{errors.age}</p>}
                 </div>
-              </div>
+                {/* Gender Selection */}
+                <div className="mt-4">
+                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+                    Gender *
+                  </label>
+                  <select
+                    id="gender"
+                    name="gender"
+                    required
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+                      errors.gender ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                  >
+                    <option value="">Select your gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {errors.gender && <p className="mt-1 text-sm text-red-600">{errors.gender}</p>}
+                </div>
+              </>
             )}
 
             <div className="flex items-center">
@@ -481,9 +481,8 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
               <button
                 onClick={() => {
                   onSwitchToLogin();
-                  navigate('/login'); // Uncomment if using react-router
-                }
-                }
+                  navigate('/login');
+                }}
                 className="text-blue-600 hover:text-blue-500 font-medium"
               >
                 Sign in
@@ -492,14 +491,14 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
           </div>
 
           <div className="mt-4 text-center">
-          <button
-            onClick={() => {
-              navigate('/');
-            }}
-            className="text-gray-500 hover:text-gray-700 text-sm"
-          >
-            ← Back to home
-          </button>
+            <button
+              onClick={() => {
+                navigate('/');
+              }}
+              className="text-gray-500 hover:text-gray-700 text-sm"
+            >
+              ← Back to home
+            </button>
           </div>
         </div>
       </div>

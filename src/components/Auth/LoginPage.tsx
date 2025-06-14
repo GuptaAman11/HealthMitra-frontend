@@ -3,8 +3,10 @@ import { Heart, Eye, EyeOff, User, Stethoscope } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Spinner } from '../../components/Spinner';
 import { useLoginApi } from '../../hooks/authHook';
+import { User as UserType } from '../../types';
+
 interface LoginPageProps {
-  onLogin: (email: string, password: string, role: 'patient' | 'doctor') => void;
+  onLogin: (user: UserType) => void;
   onSwitchToSignup: () => void;
   onBack: () => void;
 }
@@ -16,28 +18,27 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'patient' | 'doctor'>('patient');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setIsLoading(true);
-    
-  //   // Simulate API call
-  //   setTimeout(() => {
-  //     onLogin(email, password, role);
-  //     setIsLoading(false);
-  //   }, 1000);
-  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login({ phone, password, role });
-      onLogin(phone, password, role); // You can pass anything meaningful
+      const res = await login({ phone, password, role });
 
-      navigate('/dashboard'); // or wherever you want to go after login
+      const userData: UserType = {
+        id: res.userDetails._id,
+        name: res.userDetails.name,
+        email: res.userDetails.email,
+        phone: res.userDetails.phone,
+        role: res.userType.toLowerCase(),
+        avatar: undefined,
+        createdAt: new Date(res.userDetails.createdAt)
+      };
+
+      onLogin(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      navigate('/dashboard');
     } catch (err) {
-      // Error is already handled by hook
+      // Error already handled in hook
     }
   };
 
@@ -55,7 +56,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* Role Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-3">I am a:</label>
             <div className="grid grid-cols-2 gap-3">
@@ -94,12 +94,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
               <input
                 id="phone"
                 name="phone"
-                type="phone"
+                type="tel"
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="Enter your Phone Number"
+                placeholder="Enter your phone number"
               />
             </div>
 
@@ -151,12 +151,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors ${
                 role === 'patient'
                   ? 'bg-blue-600 hover:bg-blue-700'
                   : 'bg-teal-600 hover:bg-teal-700'
-              } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               {loading ? <Spinner /> : 'Sign in'}
             </button>
@@ -166,7 +166,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
             <p className="text-gray-600">
               Don't have an account?{' '}
               <button
-                onClick={()=> {
+                onClick={() => {
                   onSwitchToSignup();
                   navigate('/signup');
                 }}
@@ -178,13 +178,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
           </div>
 
           <div className="mt-4 text-center">
-          <button
-            onClick={onBack}
-            className="text-gray-500 hover:text-gray-700 text-sm"
-          >
-            ← Back to home
-          </button>
-
+            <button
+              onClick={onBack}
+              className="text-gray-500 hover:text-gray-700 text-sm"
+            >
+              ← Back to home
+            </button>
           </div>
         </div>
       </div>

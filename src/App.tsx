@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -25,7 +25,18 @@ function App() {
   const [currentView, setCurrentView] = useState('home');
   const [selectedService, setSelectedService] = useState('');
   const [authView, setAuthView] = useState<'login' | 'signup' | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('user');
+    }
+  }, [user]);
 
   const handleViewChange = (view: string) => {
     if ((view === 'dashboard' || view === 'booking') && !user) {
@@ -52,35 +63,14 @@ function App() {
     setCurrentView('services');
   };
 
-  const handleLogin = (email: string, password: string, role: 'patient' | 'doctor') => {
-    const mockUser: User = {
-      id: role === 'doctor' ? 'd1' : 'p1',
-      name: role === 'doctor' ? 'Dr. Sarah Johnson' : 'John Doe',
-      email,
-      phone: '+1-555-0101',
-      role,
-      avatar: role === 'doctor'
-        ? 'https://images.pexels.com/photos/5327921/pexels-photo-5327921.jpeg?auto=compress&cs=tinysrgb&w=300&h=300&fit=crop'
-        : undefined,
-      createdAt: new Date()
-    };
-
-    setUser(mockUser);
+  const handleLogin = (userData: User) => {
+    setUser(userData);
     setAuthView(null);
     setCurrentView('dashboard');
   };
 
-  const handleSignup = (userData: any) => {
-    const mockUser: User = {
-      id: userData.role === 'doctor' ? 'd2' : 'p2',
-      name: `${userData.firstName} ${userData.lastName}`,
-      email: userData.email,
-      phone: userData.phone,
-      role: userData.role,
-      createdAt: new Date()
-    };
-
-    setUser(mockUser);
+  const handleSignup = (userData: User) => {
+    setUser(userData);
     setAuthView(null);
     setCurrentView('dashboard');
   };
@@ -94,7 +84,6 @@ function App() {
     setAuthView(null);
     setCurrentView('home');
   };
-  
 
   const location = useLocation();
   const hideHeaderRoutes = ['/login', '/signup'];
@@ -105,25 +94,24 @@ function App() {
       <LoginPage
         onLogin={handleLogin}
         onSwitchToSignup={() => setAuthView('signup')}
-        onBack={handleBackToHome}  // ✅ This is important
+        onBack={handleBackToHome}
       />
     );
   }
-  
+
   if (authView === 'signup') {
     return (
       <SignupPage
         onSignup={handleSignup}
         onSwitchToLogin={() => setAuthView('login')}
-        onBack={handleBackToHome}  // ✅
+        onBack={handleBackToHome}
       />
     );
   }
-  
 
   return (
     <>
-    <ToastContainer 
+      <ToastContainer
         position="top-center"
         autoClose={3000}
         hideProgressBar={false}
