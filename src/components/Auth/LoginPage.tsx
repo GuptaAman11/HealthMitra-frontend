@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Heart, Eye, EyeOff, User, Stethoscope } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
+import { Spinner } from '../../components/Spinner';
+import { useLoginApi } from '../../hooks/authHook';
 interface LoginPageProps {
   onLogin: (email: string, password: string, role: 'patient' | 'doctor') => void;
   onSwitchToSignup: () => void;
@@ -9,22 +10,35 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup, onBack }) => {
+  const { login, loading } = useLoginApi();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'patient' | 'doctor'>('patient');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+    
+  //   // Simulate API call
+  //   setTimeout(() => {
+  //     onLogin(email, password, role);
+  //     setIsLoading(false);
+  //   }, 1000);
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      onLogin(email, password, role);
-      setIsLoading(false);
-    }, 1000);
+    try {
+      await login({ phone, password, role });
+      onLogin(phone, password, role); // You can pass anything meaningful
+
+      navigate('/dashboard'); // or wherever you want to go after login
+    } catch (err) {
+      // Error is already handled by hook
+    }
   };
 
   return (
@@ -74,18 +88,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
+                id="phone"
+                name="phone"
+                type="phone"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="Enter your email"
+                placeholder="Enter your Phone Number"
               />
             </div>
 
@@ -144,7 +158,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
                   : 'bg-teal-600 hover:bg-teal-700'
               } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
+              {loading ? <Spinner /> : 'Sign in'}
             </button>
           </form>
 

@@ -10,6 +10,8 @@ import { LoginPage } from './components/Auth/LoginPage';
 import { SignupPage } from './components/Auth/SignupPage';
 import ChatBot from './components/ChatBot';
 import { User } from './types';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function AppWrapper() {
   return (
@@ -121,6 +123,17 @@ function App() {
 
   return (
     <>
+    <ToastContainer 
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       {!shouldHideHeader && (
         <Header
           currentView={currentView}

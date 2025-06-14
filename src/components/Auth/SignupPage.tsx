@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Heart, Eye, EyeOff, User, Stethoscope } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useSignupApi } from '../../hooks/authHook';
 
 interface SignupPageProps {
   onSignup: (userData: any) => void;
   onSwitchToLogin: () => void;
   onBack: () => void;
-}
+} 
 
 export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogin, onBack }) => {
+  const { signup, loading } = useSignupApi();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -27,6 +29,9 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
     emergencyContact: ''
   });
   const navigate = useNavigate();
+  const [gender, setGender] = useState('');
+  const [language, setLanguage] = useState([]);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,16 +74,16 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
     e.preventDefault();
     
     if (!validateForm()) return;
-
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      onSignup(formData);
-      setIsLoading(false);
-    }, 1000);
+  
+    try {
+      await signup(formData); // Call the custom hook
+      navigate('/login');
+    } catch (err) {
+      // Error already handled in hook via toast
+    }
   };
-
+  
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
@@ -203,6 +208,50 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
               />
               {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone}</p>}
             </div>
+            {/* Gender Selection */}
+<div className="mt-4">
+  <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-2">
+    Gender *
+  </label>
+  <select
+    id="gender"
+    name="gender"
+    required
+    value={gender}
+    onChange={(e) => setGender(e.target.value)}
+    className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+      errors.gender ? 'border-red-300' : 'border-gray-300'
+    }`}
+  >
+    <option value="">Select your gender</option>
+    <option value="male">Male</option>
+    <option value="female">Female</option>
+    <option value="other">Other</option>
+  </select>
+  {errors.gender && <p className="mt-1 text-sm text-red-600">{errors.gender}</p>}
+</div>
+
+{/* Language Selection */}
+{/* <div className="mt-4">
+  <label htmlFor="language" className="block text-sm font-medium text-gray-700 mb-2">
+    Preferred Language *
+  </label>
+  <select
+    id="language"
+    name="language"
+    required
+    value={language}
+    onChange={(e) => setLanguage(e.target.value)}
+    className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
+      errors.language ? 'border-red-300' : 'border-gray-300'
+    }`}
+  >
+    <option value="">Select your language</option>
+    <option value="english">English</option>
+    <option value="hindi">Hindi</option>
+  </select>
+  {errors.language && <p className="mt-1 text-sm text-red-600">{errors.language}</p>}
+</div> */}
 
             {/* Password Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
