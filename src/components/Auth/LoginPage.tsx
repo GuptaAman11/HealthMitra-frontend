@@ -35,6 +35,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
       };
 
       onLogin(userData);
+      localStorage.setItem('token', res.token);
       localStorage.setItem('user', JSON.stringify(userData));
       navigate('/dashboard');
     } catch (err) {

@@ -25,10 +25,9 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
     specialization: '',
     licenseNumber: '',
     experience: '',
-    bio: '',
+    about: '',
     // Patient specific fields
-    age: '',
-  });
+  age : undefined,});
   const navigate = useNavigate();
   const [gender, setGender] = useState('');
   const [language, setLanguage] = useState<string[]>([]);
@@ -63,7 +62,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
       if (!formData.specialization.trim()) newErrors.specialization = 'Specialization is required';
       if (!formData.licenseNumber.trim()) newErrors.licenseNumber = 'License number is required';
       if (!formData.experience.trim()) newErrors.experience = 'Experience is required';
-      if (!formData.bio.trim()) newErrors.bio = 'Bio is required';
+      if (!formData.about.trim()) newErrors.about = 'about is required';
     }
 
     setErrors(newErrors);
@@ -337,7 +336,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
                   </div>
                 </div>
 
-                <div>
+                {/* <div>
                   <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700 mb-2">
                     License Number *
                   </label>
@@ -354,7 +353,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
                     placeholder="Enter your license number"
                   />
                   {errors.licenseNumber && <p className="mt-1 text-sm text-red-600">{errors.licenseNumber}</p>}
-                </div>
+                </div> */}
 
                 <div>
                   <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-2">
@@ -376,22 +375,22 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
                 </div>
 
                 <div>
-                  <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
-                    Professional Bio *
+                  <label htmlFor="about" className="block text-sm font-medium text-gray-700 mb-2">
+                    Professional about *
                   </label>
                   <textarea
-                    id="bio"
-                    name="bio"
+                    id="about"
+                    name="about"
                     rows={4}
                     required
-                    value={formData.bio}
+                    value={formData.about}
                     onChange={handleInputChange}
                     className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-                      errors.bio ? 'border-red-300' : 'border-gray-300'
+                      errors.about ? 'border-red-300' : 'border-gray-300'
                     }`}
                     placeholder="Tell us about your background and approach to therapy"
                   />
-                  {errors.bio && <p className="mt-1 text-sm text-red-600">{errors.bio}</p>}
+                  {errors.about && <p className="mt-1 text-sm text-red-600">{errors.about}</p>}
                 </div>
               </div>
             )}

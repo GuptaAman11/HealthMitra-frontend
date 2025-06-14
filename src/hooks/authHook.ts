@@ -6,13 +6,13 @@ interface SignupPayload {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone: string | number;
   password: string;
   confirmPassword?: string;
   role: 'patient' | 'doctor';
   specialization?: string;
   licenseNumber?: string;
-  experience?: string;
+  experience?: string | number;
   bio?: string;
   age?: string;
   dateOfBirth?: string;
@@ -39,12 +39,12 @@ export const useSignupApi = () => {
           ? {
               specialization: data.specialization,
               licenseNumber: data.licenseNumber,
-              experience: data.experience,
+              experience: Number(data.experience),
               bio: data.bio,
               language: language,
             }
           : {
-              age: data.age,
+              age: Number(data.age),
               gender:gender,
             }),
       };
