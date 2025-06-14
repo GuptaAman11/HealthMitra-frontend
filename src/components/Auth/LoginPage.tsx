@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Heart, Eye, EyeOff, User, Stethoscope } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginPageProps {
   onLogin: (email: string, password: string, role: 'patient' | 'doctor') => void;
@@ -8,6 +9,7 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup, onBack }) => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'patient' | 'doctor'>('patient');
@@ -150,7 +152,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
             <p className="text-gray-600">
               Don't have an account?{' '}
               <button
-                onClick={onSwitchToSignup}
+                onClick={()=> {
+                  onSwitchToSignup();
+                  navigate('/signup');
+                }}
                 className="text-blue-600 hover:text-blue-500 font-medium"
               >
                 Sign up
@@ -159,12 +164,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
           </div>
 
           <div className="mt-4 text-center">
-            <button
-              onClick={onBack}
-              className="text-gray-500 hover:text-gray-700 text-sm"
-            >
-              ← Back to home
-            </button>
+          <button
+            onClick={onBack}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+          >
+            ← Back to home
+          </button>
+
           </div>
         </div>
       </div>

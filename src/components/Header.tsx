@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, X, Heart, User, LogOut, Stethoscope } from 'lucide-react';
 import { User as UserType } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
   currentView: string;
@@ -25,7 +26,19 @@ export const Header: React.FC<HeaderProps> = ({
     { name: 'Book Appointment', id: 'booking' },
     { name: 'Dashboard', id: 'dashboard' },
   ];
-
+  const navigate = useNavigate();
+  const handleNavClick = (id: string) => {
+    onViewChange(id);
+    navigate(id === 'home' ? '/' : `/${id}`);
+  };
+  const handleSignInClick = () => {
+    onLogin();
+    navigate('/login');
+  };
+  const handleSignOutClick = () => {
+    onLogout();
+    navigate('/');
+  };
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,20 +53,21 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            {navigation.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onViewChange(item.id)}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  currentView === item.id
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                }`}
-              >
-                {item.name}
-              </button>
-            ))}
-          </nav>
+  {navigation.map((item) => (
+    <button
+      key={item.id}
+      onClick={() => handleNavClick(item.id)}
+      className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+        currentView === item.id
+          ? 'text-blue-600 bg-blue-50'
+          : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+      }`}
+    >
+      {item.name}
+    </button>
+  ))}
+</nav>
+
 
           {/* Auth Section */}
           <div className="hidden md:flex items-center space-x-4">
@@ -86,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
             ) : (
               <button
-                onClick={onLogin}
+                onClick={handleSignInClick}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
               >
                 Sign In
@@ -148,6 +162,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <button
                       onClick={() => {
                         onLogout();
+                        navigate('/');
                         setIsMenuOpen(false);
                       }}
                       className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-blue-600 w-full text-left"
@@ -159,6 +174,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <button
                     onClick={() => {
                       onLogin();
+                      navigate('/login');
                       setIsMenuOpen(false);
                     }}
                     className="block px-3 py-2 text-base font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 w-full"

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Heart, Eye, EyeOff, User, Stethoscope } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface SignupPageProps {
   onSignup: (userData: any) => void;
@@ -25,6 +26,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
     dateOfBirth: '',
     emergencyContact: ''
   });
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -428,7 +430,11 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
             <p className="text-gray-600">
               Already have an account?{' '}
               <button
-                onClick={onSwitchToLogin}
+                onClick={() => {
+                  onSwitchToLogin();
+                  navigate('/login'); // Uncomment if using react-router
+                }
+                }
                 className="text-blue-600 hover:text-blue-500 font-medium"
               >
                 Sign in
@@ -437,12 +443,14 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
           </div>
 
           <div className="mt-4 text-center">
-            <button
-              onClick={onBack}
-              className="text-gray-500 hover:text-gray-700 text-sm"
-            >
-              ← Back to home
-            </button>
+          <button
+            onClick={() => {
+              navigate('/');
+            }}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+          >
+            ← Back to home
+          </button>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, User, Star, ArrowLeft, CheckCircle } from 'lucide-react';
 import { therapists, yogaInstructors, sessionTypes } from '../data/mockData';
+import { useNavigate } from 'react-router-dom';
 
 interface BookingSystemProps {
   serviceType?: string;
@@ -8,13 +9,14 @@ interface BookingSystemProps {
 }
 
 export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBack }) => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState(serviceType || '');
   const [selectedProvider, setSelectedProvider] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [bookingComplete, setBookingComplete] = useState(false);
-
+  
   const filteredServices = sessionTypes.filter(service => 
     !selectedService || 
     selectedService === 'all' || 
@@ -83,7 +85,7 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
             className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Services</span>
+            <span onClick={() => navigate('/services')}>Back to Services</span>
           </button>
         </div>
 
