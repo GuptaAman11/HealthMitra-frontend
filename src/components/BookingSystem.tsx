@@ -6,6 +6,8 @@ import { therapists, yogaInstructors, sessionTypes } from '../data/mockData';
 import { useNavigate } from 'react-router-dom';
 import { useAllDoctors, useBookedSlots, useBookAppointment } from '../hooks/bookingHook';
 import PaymentOptionModal from './PaymentOptionModal';
+import RazorpayGateway from './RazorPayGateway';
+import { toast } from 'react-toastify';
 
 interface BookingSystemProps {
   serviceType?: string;
@@ -26,12 +28,15 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
     specialization: '',
     rating: ''
   });
-
+  const [searchTerm, setSearchTerm] = useState('');
   const { bookAppointment, loading, successMessage, errorMessage } = useBookAppointment();
   const { doctors, loading: doctorsLoading, error } = useAllDoctors();
+  const [showRazorpay, setShowRazorpay] = useState(false);
 
-  const formattedDate = selectedDate ? selectedDate.toISOString().split('T')[0] : null;
-
+  const formattedDate = selectedDate
+  ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+  : null;
+  console.log(formattedDate)
   const bookedSlotsData = useBookedSlots({
     doctorId: step === 3 ? selectedProvider : null,
     date: step === 3 && formattedDate ? formattedDate : null,
@@ -60,6 +65,9 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
     return bookedDates.map((dateStr: string) => new Date(dateStr));
   }, [bookedSlotsData?.bookedSlots]);
 
+  const filteredDoctors = doctors.filter((doctor) =>
+    doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   const providers = selectedService === 'yoga' ? yogaInstructors : therapists;
 
   if (doctorsLoading) return <p>Loading doctors...</p>;
@@ -67,7 +75,7 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
 
   const handleBookingClick = () => {
     if (!formattedDate || !selectedProvider || !selectedTime ){
-      return alert('Please select all fields before proceeding.');
+      return toast.error('Please select Date and TimeSlots.');
       
     } ;
     setShowPaymentOptions(true);
@@ -86,8 +94,8 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
     }
   };
   const handleRazorpayPayment = () => {
-    setShowPaymentOptions(false);
-    // Proceed with Razorpay flow here
+    setShowPaymentOptions(false); // close modal
+    setShowRazorpay(true); // show Razorpay component
   };
   
   if (bookingComplete) {
@@ -101,7 +109,7 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Booking Confirmed!</h2>
             <p className="text-gray-600 mb-8">Your appointment has been successfully scheduled.</p>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/dashboard')}
               className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
             >
               Return to Home
@@ -155,7 +163,7 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">Individual Counseling</h3>
                       <p className="text-gray-600 mb-4">One-on-one therapy sessions with licensed mental health professionals</p>
                       <div className="flex justify-between items-center">
-                        <span className="text-2xl font-bold text-blue-600">rs.500</span>
+                        <span className="text-2xl font-bold text-blue-600">₹150</span>
                         <span className="text-gray-500">60 min</span>
                       </div>
                     </div>
@@ -181,9 +189,16 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
 
             {step === 2 && (
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose Your Provider</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Choose Your Doctor</h2>
+                <input
+          type="text"
+          placeholder="Search by Doctor name"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="border px-3 py-2 rounded-md w-64 focus:ring-2 focus:ring-teal-500 focus:outline-none mb-6"
+        />
                 <div className="space-y-6">
-                  {doctors.map(provider => (
+                  {filteredDoctors.map(provider => (
                     <div
                       key={provider._id}
                       onClick={() => {
@@ -225,7 +240,7 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
                               }
                             </div>
                             <span className="text-lg font-semibold text-gray-900">
-                              {provider.price || "Rs.500"}/session
+                              {provider.price || "₹150"}/session
                             </span>
                           </div>
                         </div>
@@ -301,6 +316,8 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
                     <div className="flex justify-between"><span className="text-gray-600">Date:</span><span className="font-medium">{formattedDate}</span></div>
                     <div className="flex justify-between"><span className="text-gray-600">Time:</span><span className="font-medium">{selectedTime}</span></div>
                     <div className="flex justify-between"><span className="text-gray-600">Rating:</span><span className="font-medium">{doctorDetails.rating || "4.3"}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600">Price:</span><span className="font-medium">₹150</span></div>
+
                   </div>
                 </div>
                 <div className="flex space-x-4">
@@ -317,12 +334,16 @@ export const BookingSystem: React.FC<BookingSystemProps> = ({ serviceType, onBac
                     Confirm Booking
                   </button>
                   {showPaymentOptions && (
-                  <PaymentOptionModal
-                    onDummyBooking={handleDummyBooking}
-                    onRazorpay={handleRazorpayPayment}
-                    onCancel={() => setShowPaymentOptions(false)}
-                  />
-                )}
+                    <PaymentOptionModal
+                      onDummyBooking={handleDummyBooking}
+                      onRazorpay={handleRazorpayPayment}
+                      onCancel={() => setShowPaymentOptions(false)}
+                    />
+                  )}
+
+                  {showRazorpay && <RazorpayGateway />}
+
+
 
                 </div>
               </div>

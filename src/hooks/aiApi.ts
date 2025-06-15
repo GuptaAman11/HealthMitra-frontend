@@ -1,7 +1,8 @@
 // src/api/chatbotApi.ts
+const base_url = import.meta.env.VITE_AI_BACKEND_BASE_URL || 'http://localhost:4567';
 
 export const sendMessageToAI = async (message: string, language: string) => {
-    const res = await fetch('http://localhost:4567/api/a', {
+    const res = await fetch(`${base_url}/api/a`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message, language }),
@@ -14,7 +15,7 @@ export const sendMessageToAI = async (message: string, language: string) => {
     messages: { sender: string; text: string }[],
     language: string
   ) => {
-    const res = await fetch('http://localhost:4567/api/analyze', {
+    const res = await fetch(`${base_url}/api/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages, language }),
@@ -24,7 +25,7 @@ export const sendMessageToAI = async (message: string, language: string) => {
   };
   
   export const fetchTTS = async (text: string , id:string) => {
-    const res = await fetch('http://localhost:4567/api/tts', {
+    const res = await fetch(`${base_url}/api/tts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text , id }),

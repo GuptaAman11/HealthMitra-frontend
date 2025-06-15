@@ -17,7 +17,7 @@ interface SignupPayload {
   age?: string;
   dateOfBirth?: string;
 }
-const base_url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:1234';
+const base_url = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:1234';
 
 export const useSignupApi = () => {
   const [loading, setLoading] = useState(false);
@@ -87,7 +87,7 @@ interface LoginData {
       setLoading(true);
 
       try {
-        const res = await fetch('http://localhost:1234/api/auth/login', {
+        const res = await fetch(`${base_url}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

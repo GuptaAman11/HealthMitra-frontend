@@ -14,18 +14,30 @@ export const Dashboard: React.FC = () => {
   }, []); // ✅ empty dependency array = run once on mount
   
   const { appointments, loading, error, refetch , pendingCount , completedCount } = useMyAppointments();
-  const { completedAppointments } = useMyCompletedAppointments();
+const { completedAppointments } = useMyCompletedAppointments();
+const [searchTerm , setSearchTerm] = useState('');
+const [searchTermForCompleted, setSearchTermForCompleted] = useState('');
 
-  const handleVideoCall = (roomId: string) => {
-    navigate(`/video/${roomId}`);
-  };
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error}</p>;
-  const tabs = [
-    { id: 'appointments', name: 'Appointments', icon: Calendar },
-    { id: 'profile', name: 'Profile', icon: User },
-    { id: 'settings', name: 'Settings', icon: Settings }
-  ];
+const filteredAppointments = appointments.filter((appointment) =>
+  appointment.patientId?.name.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+const filteredCompletedAppointments = completedAppointments.filter((appointment) =>
+  appointment.patientId?.name.toLowerCase().includes(searchTermForCompleted.toLowerCase())
+);
+
+const handleVideoCall = (roomId: string) => {
+  navigate(`/video/${roomId}`);
+};
+
+const tabs = [
+  { id: 'appointments', name: 'Appointments', icon: Calendar },
+  { id: 'profile', name: 'Profile', icon: User },
+  { id: 'settings', name: 'Settings', icon: Settings }
+];
+
+if (loading) return <p>Loading...</p>;
+if (error) return <p>Error: {error}</p>;
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -115,13 +127,21 @@ export const Dashboard: React.FC = () => {
 
                 {/* Upcoming Appointments */}
                 <div className="bg-white rounded-xl shadow-sm">
-                  <div className="p-6 border-b border-gray-200">
+                  
+                  <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-gray-900">Upcoming Appointments</h2>
-                  </div>
+                    <input
+                      type="text"
+                      placeholder="Search by Doctor name"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="border px-3 py-2 rounded-md w-64 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                    />
+                </div>
                   <div className="p-6">
-                    {appointments.length > 0 ? (
+                    {filteredAppointments.length > 0 ? (
                       <div className="space-y-4">
-                        {appointments.map((appointment: any) => (
+                        {filteredAppointments.map((appointment: any) => (
                               <div key={appointment._id} className="border border-gray-200 rounded-lg p-4">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
@@ -171,14 +191,22 @@ export const Dashboard: React.FC = () => {
 
                 {/* Completed Sessions */}
                 <div className="bg-white rounded-xl shadow-sm">
-                  <div className="p-6 border-b border-gray-200">
+                
+                  <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-gray-900">Completed Sessions</h2>
+                  <input
+                      type="text"
+                      placeholder="Search by Doctor name"
+                      value={searchTermForCompleted}
+                      onChange={(e) => setSearchTermForCompleted(e.target.value)}
+                      className="border px-3 py-2 rounded-md w-64 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                    />
                   </div>
                   <div className="p-6">
                     <div className="space-y-4">
-                      {completedAppointments.length > 0 ? (
+                      {filteredCompletedAppointments.length > 0 ? (
                         <div className="border border-gray-200 rounded-lg p-4">
-                          {completedAppointments.map((appointment: any) => (
+                          {filteredCompletedAppointments.map((appointment: any) => (
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
                                 <div className="bg-green-100 p-3 rounded-lg">

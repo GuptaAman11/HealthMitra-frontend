@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, Video, FileText, User, Settings, Bell, Star, Users, TrendingUp, DollarSign } from 'lucide-react';
+import { Calendar, Clock,Check, Video, FileText, User, Settings, Bell, Star, Users, TrendingUp, DollarSign , Search } from 'lucide-react';
 
+import { useAttendedAppointment } from '../hooks/bookingHook';
 
 import { useMyAppointments , useMyCompletedAppointments } from '../hooks/apointHook';
 import { useNavigate } from 'react-router-dom';
 
 export const DoctorDashboard: React.FC = () => {
+
   const [activeTab, setActiveTab] = useState('appointments');
   const navigate = useNavigate();
-  
+  const { attendedAppointment } = useAttendedAppointment();
   const { appointments, loading, error,  pendingCount , completedCount } = useMyAppointments();
     const { completedAppointments } = useMyCompletedAppointments();
   const tabs = [
@@ -18,6 +20,17 @@ export const DoctorDashboard: React.FC = () => {
     { id: 'profile', name: 'Profile', icon: User },
     { id: 'settings', name: 'Settings', icon: Settings }
   ];
+  const [searchTerm , setSearchTerm] = useState('');
+  const filteredAppointments = appointments.filter((appointment) =>
+    appointment.patientId?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const [searchTermForCompleted, setSearchTermForCompleted] = useState('');
+  const filteredCompletedAppointments = completedAppointments.filter((appointment) =>
+    appointment.patientId?.name.toLowerCase().includes(searchTerm.toLowerCase())
+
+  );
+  
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -97,7 +110,7 @@ export const DoctorDashboard: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-gray-600 text-sm">This Month</p>
-                        <p className="text-2xl font-bold text-gray-900">₹{(appointments.length)*500}</p>
+                        <p className="text-2xl font-bold text-gray-900">₹{(appointments.length)*150}</p>
                       </div>
                       <div className="bg-purple-100 p-3 rounded-lg">
                         <DollarSign className="h-6 w-6 text-purple-600" />
@@ -120,13 +133,23 @@ export const DoctorDashboard: React.FC = () => {
 
                 {/* Today's Appointments */}
                 <div className="bg-white rounded-xl shadow-sm">
-                  <div className="p-6 border-b border-gray-200">
+                  <div className="p-6 border-b border-gray-200 flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-gray-900">Today's Appointments</h2>
+                    <div className="relative w-64">
+                      <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
+                      <input
+                        type="text"
+                        placeholder="Search patient name..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 w-full"
+                      />
+                    </div>
                   </div>
                   <div className="p-6">
-                    {appointments.length > 0 ? (
+                    {filteredAppointments.length > 0 ? (
                       <div className="space-y-4">
-                        {appointments.map((appointment) => (
+                        {filteredAppointments.map((appointment) => (
                           <div key={appointment._id} className="border border-gray-200 rounded-lg p-4">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
@@ -141,7 +164,7 @@ export const DoctorDashboard: React.FC = () => {
                                       <Clock className="h-4 w-4" />
                                       <span>{appointment.time}</span>
                                     </span>
-                                    <span>{60} min</span>
+                                    <span>{((appointment as any).timeSlot)?.toString() || '0'} </span>
                                     <span className="flex items-center space-x-1">
                                       <Clock className="h-4 w-4" />
                                       <span>{appointment.date}</span>
@@ -161,6 +184,9 @@ export const DoctorDashboard: React.FC = () => {
                                 <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                                   <FileText className="h-4 w-4" />
                                 </button>
+                                <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                                  <Check className="h-4 w-4" />
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -177,12 +203,19 @@ export const DoctorDashboard: React.FC = () => {
 
                 {/* Recent Sessions */}
                 <div className="bg-white rounded-xl shadow-sm">
-                  <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-semibold text-gray-900">Completed Session</h2>
+                  <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h2 className="text-xl font-semibold text-gray-900">Today's Appointments</h2>
+                    <input
+                      type="text"
+                      placeholder="Search by patient name"
+                      value={searchTermForCompleted}
+                      onChange={(e) => setSearchTermForCompleted(e.target.value)}
+                      className="border px-3 py-2 rounded-md w-64 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                    />
                   </div>
                   <div className="p-6">
                     <div className="space-y-4">
-                      {completedAppointments.length > 0 ? completedAppointments.map((appointment: any) => (
+                      {filteredCompletedAppointments.length > 0 ? filteredCompletedAppointments.map((appointment: any) => (
                         <div key={appointment._id} className="border border-gray-200 rounded-lg p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">

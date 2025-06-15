@@ -19,12 +19,16 @@ export const Header: React.FC<HeaderProps> = ({
   onLogout
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const navigation = [
+  const storedUser = localStorage.getItem('user');
+  const role = storedUser ? JSON.parse(storedUser) : { role: 'Patient' };
+  const navigation = role.role === 'patient' ? [
     { name: 'Home', id: 'home' },
     { name: 'Services', id: 'services' },
     { name: 'Book Appointment', id: 'booking' },
-    { name: 'Dashboard', id: 'dashboard' },
+    { name: 'Dashboard', id: 'dashboard' }
+  ] : [
+    { name: 'Home', id: 'home' },
+    { name: 'dashboard', id: 'dashboard' }
   ];
   const navigate = useNavigate();
   const handleNavClick = (id: string) => {
@@ -48,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="bg-gradient-to-r from-blue-500 to-teal-500 p-2 rounded-lg">
               <Heart className="h-6 w-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">MindfulCare</span>
+            <span className="text-xl font-bold text-gray-900">HealthMitra</span>
           </div>
 
           {/* Desktop Navigation */}

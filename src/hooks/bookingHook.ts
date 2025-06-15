@@ -12,6 +12,7 @@ export interface Doctor {
   }[];
   [key: string]: any; // for optional additional fields
 }
+const base_url = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:1234';
 
 export const useAllDoctors = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -21,7 +22,7 @@ export const useAllDoctors = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const response = await fetch('http://localhost:1234/api/doctors/alldoctor' , {
+        const response = await fetch(`${base_url}/api/doctors/alldoctor` , {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -70,7 +71,7 @@ export const useBookedSlots = ({ doctorId, date }: UseBookedSlotsProps) => {
       setError(null);
 
       try {
-        const response = await fetch('http://localhost:1234/api/appointments/get-booked-slots', {
+        const response = await fetch(`${base_url}/api/appointments/get-booked-slots`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ export const useBookAppointment = () => {
     setSuccessMessage(null);
 
     try {
-      const response = await fetch('http://localhost:1234/api/appointments/book', {
+      const response = await fetch(`${base_url}/api/appointments/book`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,5 +153,44 @@ export const useBookAppointment = () => {
     errorMessage,
   };
 };
+
+
+// hooks/useCompleteAppointment.ts
+
+export const useAttendedAppointment = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const attendedAppointment = async (id: string) => {
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const res = await fetch(`${base_url}/api/appointments/attendedappointment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || 'Failed to complete appointment');
+
+      setSuccess(true);
+      return data; // Contains appointment and message
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { attendedAppointment, loading, error, success };
+};
+
 
 

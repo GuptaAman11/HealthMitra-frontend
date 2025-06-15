@@ -15,6 +15,7 @@ interface Appointment {
     phone: string;
   };
 }
+const base_url = import.meta.env.VITE_BACKEND_BASE_URL || 'http://localhost:1234';
 
 export const useMyAppointments = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -30,7 +31,7 @@ export const useMyAppointments = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:1234/api/appointments/me', {
+      const response = await fetch(`${base_url}/api/appointments/me`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -76,7 +77,7 @@ export const useMyCompletedAppointments = () => {
   
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:1234/api/appointments/completed-appointment', {
+        const response = await fetch(`${base_url}/api/appointments/completed-appointment`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
