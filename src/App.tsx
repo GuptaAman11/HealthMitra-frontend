@@ -12,6 +12,7 @@ import ChatBot from './components/ChatBot';
 import { User } from './types';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import VideoCallPage from './components/VideoCallPage';
 
 function AppWrapper() {
   return (
@@ -101,11 +102,12 @@ function App() {
 
   if (authView === 'signup') {
     return (
-      <SignupPage
-        onSignup={handleSignup}
-        onSwitchToLogin={() => setAuthView('login')}
-        onBack={handleBackToHome}
-      />
+      <Route path="/signup" element={
+        <SignupPage
+          onSwitchToLogin={() => setAuthView('login')}
+        />
+      } />
+      
     );
   }
 
@@ -165,12 +167,14 @@ function App() {
         } />
         <Route path="/signup" element={
           <SignupPage
-            onSignup={handleSignup}
+            // onSignup={handleSignup}
             onSwitchToLogin={() => setAuthView('login')}
-            onBack={handleBackToHome}
+            // onBack={handleBackToHome}
           />
         } />
         <Route path="/chatbot" element={<ChatBot />} />
+        <Route path="/video/:roomId" element={<VideoCallPage />} />
+
       </Routes>
     </>
   );

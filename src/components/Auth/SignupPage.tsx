@@ -6,12 +6,10 @@ import SPECIALIZATIONS from '../../data/specialization';
 import LANGUAGES from '../../data/language';
 
 interface SignupPageProps {
-  onSignup: (userData: any) => void;
   onSwitchToLogin: () => void;
-  onBack: () => void;
-} 
+}
 
-export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogin, onBack }) => {
+export const SignupPage: React.FC<SignupPageProps> = ({ onSwitchToLogin }) => {
   const { signup, loading } = useSignupApi();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -27,19 +25,19 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
     experience: '',
     about: '',
     // Patient specific fields
-  age : undefined,});
+    age: ''
+  });
+  
   const navigate = useNavigate();
   const [gender, setGender] = useState('');
   const [language, setLanguage] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -63,6 +61,9 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
       if (!formData.licenseNumber.trim()) newErrors.licenseNumber = 'License number is required';
       if (!formData.experience.trim()) newErrors.experience = 'Experience is required';
       if (!formData.about.trim()) newErrors.about = 'about is required';
+    } else {
+      if (!formData.age.trim()) newErrors.age = 'Age is required';
+      if (!gender) newErrors.gender = 'Gender is required';
     }
 
     setErrors(newErrors);
@@ -71,17 +72,20 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
   
     try {
-      await signup(formData, gender, language); // Call the custom hook
-      navigate('/login');
+      await signup({
+        ...formData,
+        experience: formData.role === 'doctor' ? formData.experience : undefined,
+        age: formData.role === 'patient' ? formData.age : undefined
+      }, gender, language);
+      window.location.href = '/login';
     } catch (err) {
-      // Error already handled in hook via toast
+      // Error handled in hook via toast
     }
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
@@ -320,9 +324,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
                         const selected = Array.from(e.target.selectedOptions, (option) => option.value);
                         setLanguage(selected);
                       }}
-                      className={`w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors ${
-                        errors.languages ? 'border-red-300' : 'border-gray-300'
-                      }`}
+                      className="w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 transition-colors border-gray-300 h-auto min-h-[100px]"
                     >
                       {LANGUAGES.map((lang) => (
                         <option key={lang} value={lang}>
@@ -336,7 +338,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
                   </div>
                 </div>
 
-                {/* <div>
+                <div>
                   <label htmlFor="licenseNumber" className="block text-sm font-medium text-gray-700 mb-2">
                     License Number *
                   </label>
@@ -353,7 +355,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
                     placeholder="Enter your license number"
                   />
                   {errors.licenseNumber && <p className="mt-1 text-sm text-red-600">{errors.licenseNumber}</p>}
-                </div> */}
+                </div>
 
                 <div>
                   <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-2">
@@ -363,6 +365,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
                     id="experience"
                     name="experience"
                     type="number"
+                    min="0"
                     required
                     value={formData.experience}
                     onChange={handleInputChange}
@@ -406,6 +409,8 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
                     id="age"
                     name="age"
                     type="number"
+                    min="1"
+                    max="120"
                     required
                     value={formData.age}
                     onChange={handleInputChange}
@@ -463,14 +468,14 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors ${
                 formData.role === 'patient'
                   ? 'bg-blue-600 hover:bg-blue-700'
                   : 'bg-teal-600 hover:bg-teal-700'
-              } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {isLoading ? 'Creating account...' : 'Create Account'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
@@ -491,9 +496,7 @@ export const SignupPage: React.FC<SignupPageProps> = ({ onSignup, onSwitchToLogi
 
           <div className="mt-4 text-center">
             <button
-              onClick={() => {
-                navigate('/');
-              }}
+              onClick={() => navigate('/')}
               className="text-gray-500 hover:text-gray-700 text-sm"
             >
               ← Back to home

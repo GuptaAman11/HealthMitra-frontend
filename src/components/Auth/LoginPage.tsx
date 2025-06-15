@@ -170,11 +170,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onSwitchToSignup,
                 onClick={() => {
                   onSwitchToSignup();
                   navigate('/signup');
+                  window.location.reload(); // ✅ Force a full page reload
                 }}
                 className="text-blue-600 hover:text-blue-500 font-medium"
               >
                 Sign up
               </button>
+
             </p>
           </div>
 

@@ -1,19 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import { Calendar, Clock, Video, FileText, User, Settings, Bell, Star } from 'lucide-react';
-import { mockAppointments } from '../data/mockData';
-
+import { useMyAppointments , useMyCompletedAppointments } from '../hooks/apointHook';
+import { useNavigate } from 'react-router-dom';
 export const Dashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('appointments');
+  const navigate = useNavigate();
+  const [user , setUser] = useState<any>(null);
+  useEffect(() => {
+    const details = localStorage.getItem("user");
+    if (details) {
+      setUser(JSON.parse(details));
+    }
+  }, []); // ✅ empty dependency array = run once on mount
+  
+  const { appointments, loading, error, refetch , pendingCount , completedCount } = useMyAppointments();
+  const { completedAppointments } = useMyCompletedAppointments();
 
-  const upcomingAppointments = mockAppointments.filter(apt => apt.status === 'scheduled');
-  const pastAppointments = mockAppointments.filter(apt => apt.status === 'completed');
-
+  const handleVideoCall = (roomId: string) => {
+    navigate(`/video/${roomId}`);
+  };
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error}</p>;
   const tabs = [
     { id: 'appointments', name: 'Appointments', icon: Calendar },
     { id: 'profile', name: 'Profile', icon: User },
     { id: 'settings', name: 'Settings', icon: Settings }
   ];
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,8 +43,8 @@ export const Dashboard: React.FC = () => {
                   <User className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">John Doe</h3>
-                  <p className="text-gray-600 text-sm">john@example.com</p>
+                  <h3 className="font-semibold text-gray-900">{user.name}</h3>
+                  <p className="text-gray-600 text-sm">{user.phone}</p>
                 </div>
               </div>
               
@@ -68,7 +80,7 @@ export const Dashboard: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-gray-600 text-sm">Upcoming Sessions</p>
-                        <p className="text-2xl font-bold text-gray-900">{upcomingAppointments.length}</p>
+                        <p className="text-2xl font-bold text-gray-900">{(pendingCount ?? 0).toString()}</p>
                       </div>
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <Calendar className="h-6 w-6 text-blue-600" />
@@ -80,7 +92,7 @@ export const Dashboard: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-gray-600 text-sm">Completed Sessions</p>
-                        <p className="text-2xl font-bold text-gray-900">12</p>
+                        <p className="text-2xl font-bold text-gray-900">{(completedCount ?? 0).toString()}</p>
                       </div>
                       <div className="bg-green-100 p-3 rounded-lg">
                         <FileText className="h-6 w-6 text-green-600" />
@@ -107,10 +119,10 @@ export const Dashboard: React.FC = () => {
                     <h2 className="text-xl font-semibold text-gray-900">Upcoming Appointments</h2>
                   </div>
                   <div className="p-6">
-                    {upcomingAppointments.length > 0 ? (
+                    {appointments.length > 0 ? (
                       <div className="space-y-4">
-                        {upcomingAppointments.map((appointment) => (
-                          <div key={appointment.id} className="border border-gray-200 rounded-lg p-4">
+                        {appointments.map((appointment: any) => (
+                              <div key={appointment._id} className="border border-gray-200 rounded-lg p-4">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-4">
                                 <div className={`p-3 rounded-lg ${
@@ -125,8 +137,8 @@ export const Dashboard: React.FC = () => {
                                   )}
                                 </div>
                                 <div>
-                                  <h3 className="font-semibold text-gray-900">{appointment.providerName}</h3>
-                                  <p className="text-gray-600 capitalize">{appointment.type} Session</p>
+                                  <h3 className="font-semibold text-gray-900">Dr. {appointment.doctorId.name}</h3>
+                                  <p className="text-gray-600 capitalize">{appointment.doctorId.specialization[0]} Session</p>
                                   <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                                     <span className="flex items-center space-x-1">
                                       <Calendar className="h-4 w-4" />
@@ -134,12 +146,13 @@ export const Dashboard: React.FC = () => {
                                     </span>
                                     <span className="flex items-center space-x-1">
                                       <Clock className="h-4 w-4" />
-                                      <span>{appointment.time}</span>
+                                      <span>{appointment.timeSlot}</span>
                                     </span>
                                   </div>
                                 </div>
                               </div>
-                              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                                onClick={()=>handleVideoCall(appointment.roomId)}>
                                 <Video className="h-4 w-4" />
                                 <span>Join Session</span>
                               </button>
@@ -156,37 +169,45 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Recent Sessions */}
+                {/* Completed Sessions */}
                 <div className="bg-white rounded-xl shadow-sm">
                   <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-semibold text-gray-900">Recent Sessions</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">Completed Sessions</h2>
                   </div>
                   <div className="p-6">
                     <div className="space-y-4">
-                      <div className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <div className="bg-green-100 p-3 rounded-lg">
-                              <User className="h-5 w-5 text-green-600" />
+                      {completedAppointments.length > 0 ? (
+                        <div className="border border-gray-200 rounded-lg p-4">
+                          {completedAppointments.map((appointment: any) => (
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-4">
+                                <div className="bg-green-100 p-3 rounded-lg">
+                                  <User className="h-5 w-5 text-green-600" />
+                                </div>
+                                <div>
+                                  <h3 className="font-semibold text-gray-900">Dr. {appointment.doctorId.name}</h3>
+                                  <p className="text-gray-600 capitalize">{appointment.doctorId.specialization} Session</p>
+                                  <p className="text-sm text-gray-500">{appointment.date} - Completed</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <div className="flex items-center space-x-1">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star key={star} className="h-4 w-4 text-yellow-400 fill-current" />
+                                  ))}
+                                </div>
+                                <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                  View Notes
+                                </button>
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900">Dr. Sarah Johnson</h3>
-                              <p className="text-gray-600">Counseling Session</p>
-                              <p className="text-sm text-gray-500">Jan 15, 2024 - Completed</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="flex items-center space-x-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star key={star} className="h-4 w-4 text-yellow-400 fill-current" />
-                              ))}
-                            </div>
-                            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                              View Notes
-                            </button>
-                          </div>
+                          ))}
                         </div>
-                      </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-gray-600">No Completed sessions</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -202,7 +223,7 @@ export const Dashboard: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                       <input
                         type="text"
-                        defaultValue="John"
+                        defaultValue={user.name.split(' ')[0]}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
@@ -210,7 +231,7 @@ export const Dashboard: React.FC = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
                       <input
                         type="text"
-                        defaultValue="Doe"
+                        defaultValue={user.name.split(' ')[1] || ''}
                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
@@ -229,7 +250,7 @@ export const Dashboard: React.FC = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                     <input
                       type="tel"
-                      defaultValue="+1 (555) 123-4567"
+                      defaultValue={user.phone}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>

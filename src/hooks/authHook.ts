@@ -13,7 +13,7 @@ interface SignupPayload {
   specialization?: string;
   licenseNumber?: string;
   experience?: string | number;
-  bio?: string;
+  about?: string;
   age?: string;
   dateOfBirth?: string;
 }
@@ -21,10 +21,8 @@ const base_url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:1234';
 
 export const useSignupApi = () => {
   const [loading, setLoading] = useState(false);
-
   const signup = async (data: SignupPayload , gender: string , language:string[]) => {
     console.log(data , gender , language);
-    // return;
     setLoading(true);
 
     try {
@@ -39,8 +37,8 @@ export const useSignupApi = () => {
           ? {
               specialization: data.specialization,
               licenseNumber: data.licenseNumber,
-              experience: Number(data.experience),
-              bio: data.bio,
+              experienceYears: Number(data.experience),
+              about: data.about,
               language: language,
             }
           : {
@@ -87,6 +85,7 @@ interface LoginData {
   
     const login = async (data: LoginData) => {
       setLoading(true);
+
       try {
         const res = await fetch('http://localhost:1234/api/auth/login', {
           method: 'POST',
@@ -108,6 +107,7 @@ interface LoginData {
         toast.success('Login successful!');
         return result;
       } catch (err: any) {
+        toast.error(err.message || 'An error occurred during login');
         console.error(err);
         throw err;
       } finally {

@@ -70,7 +70,7 @@ export const useBookedSlots = ({ doctorId, date }: UseBookedSlotsProps) => {
       setError(null);
 
       try {
-        const response = await fetch('http://localhost:5000/api/appointments/get-booked-slots', {
+        const response = await fetch('http://localhost:1234/api/appointments/get-booked-slots', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -99,3 +99,58 @@ export const useBookedSlots = ({ doctorId, date }: UseBookedSlotsProps) => {
 
   return { bookedSlots, loading, error };
 };
+
+
+
+
+interface BookAppointmentParams {
+  doctorId: string;
+  date: string; // format: YYYY-MM-DD
+  timeSlot: string; // e.g. "11:00"
+  serviceType: string; // e.g. "yoga", "counseling"
+}
+
+export const useBookAppointment = () => {
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const bookAppointment = async ({ doctorId, date, timeSlot, serviceType }: BookAppointmentParams) => {
+    setLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const response = await fetch('http://localhost:1234/api/appointments/book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token') || ''}`,
+        },
+        body: JSON.stringify({ doctorId, date, timeSlot, serviceType }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Booking failed');
+      }
+
+      setSuccessMessage('Appointment booked successfully!');
+      return data.appointment; // Optional return of the created appointment
+    } catch (error: any) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    bookAppointment,
+    loading,
+    successMessage,
+    errorMessage,
+  };
+};
+
+
